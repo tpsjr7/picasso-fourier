@@ -179,6 +179,31 @@ class FourierSeries {
         }
     }
 
+    public toFormula(order: number): string {
+        const coeffList = this.getCoefficients(0, order);
+
+        let xLine = "f\\left(t\\right) =";
+        let yLine = "g\\left(t\\right) =";
+
+        for (const c of coeffList) {
+            if (c.n === 0) {
+                const xConst = c.magnitude * Math.cos(c.phase);
+                const yConst = -c.magnitude * Math.sin(c.phase);
+                xLine += xConst.toFixed(4);
+                yLine += yConst.toFixed(4);
+            } else {
+                const phasePart = Math.abs(c.phase) > 1e-4
+                    ? `${c.phase >= 0 ? "+" : ""}${c.phase.toFixed(4)}`
+                    : "";
+
+                xLine += `+${c.magnitude.toFixed(4)}*\\cos(${2 * c.n}\\pi*t${phasePart})`;
+                yLine += `-${c.magnitude.toFixed(4)}*\\sin(${2 * c.n}\\pi*t${phasePart})`;
+            }
+        }
+
+        return `${xLine}\n${yLine}\n\\left(f\\left(t\\right), g\\left(t\\right)\\right)`;
+    }
+
     public computePoint(order: number, t: TimeUnit): Point {
         const point: Point = { x: 0, y: 0 };
         const coefficients = this.getCoefficients(0, order);

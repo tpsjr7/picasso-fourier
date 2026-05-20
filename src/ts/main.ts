@@ -10,6 +10,47 @@ import * as UserInput from "./user-input";
 
 import "./page-interface-generated";
 
+function setFormulaText(fourierRef: FourierSeries, order: number): void {
+    if (!fourierRef) return;
+
+    // Create CSS if not already present
+    if (!document.getElementById("formula-style")) {
+        const style = document.createElement("style");
+        style.id = "formula-style";
+        style.textContent = "#formula-container{max-height:200px;overflow-y:auto;margin:4px 16px;display:flex;flex-direction:column;flex:1}#formula-output{flex:1;margin:0;padding:8px;font-size:11px;font-family:\"Lucida Console\",Monaco,monospace;line-height:1.4;resize:none;border:1px solid #c9c9c9;border-radius:4px;background:#fff;min-height:100px}";
+        document.head.appendChild(style);
+    }
+
+    // Create formula section if not already present
+    let section = document.getElementById("formula-section");
+    if (!section) {
+        section = document.createElement("section");
+        section.id = "formula-section";
+        section.className = "controls-section";
+        const h2 = document.createElement("h2");
+        h2.textContent = "Formula";
+        section.appendChild(h2);
+        const container = document.createElement("div");
+        container.id = "formula-container";
+        const textarea = document.createElement("textarea");
+        textarea.id = "formula-output";
+        textarea.readOnly = true;
+        textarea.spellcheck = false;
+        container.appendChild(textarea);
+        section.appendChild(container);
+
+        const controlsBlock = document.querySelector(".controls-block") as HTMLElement;
+        if (controlsBlock) {
+            controlsBlock.appendChild(section);
+        }
+    }
+
+    const el = document.getElementById("formula-output") as HTMLTextAreaElement;
+    if (el) {
+        el.value = fourierRef.toFormula(order);
+    }
+}
+
 function setOrderIndicator(value: number): void {
     value = Math.round(100 * value) / 100; // 2 digits max
     Page.Canvas.setIndicatorText("fourier-order", value.toLocaleString());
@@ -27,7 +68,9 @@ function main(): void {
     const clock = new Clock();
 
     let needToRestart = true;
-    Parameters.clearObservers.push(() => needToRestart = true);
+    Parameters.clearObservers.push(() => {
+        needToRestart = true;
+    });
     UserInput.finishedAcquisitionCallbacks.push((isValid: boolean) => {
         if (isValid) {
             drawing = null;
@@ -101,6 +144,7 @@ function main(): void {
                 t = 0;
                 finishedLoop = false;
                 setOrderIndicator(Parameters.order);
+                setFormulaText(fourier, Parameters.order);
                 canvas2D.clear();
             }
 
